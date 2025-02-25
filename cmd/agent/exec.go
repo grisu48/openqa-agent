@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
-	"syscall"
 	"time"
 )
 
@@ -62,11 +61,7 @@ func (job *ExecJob) exec() error {
 		args = split[1:]
 	}
 	cmd := exec.Command(split[0], args...)
-	// Apply command settings
-	if job.UID > 0 || job.GID > 0 {
-		cmd.SysProcAttr = &syscall.SysProcAttr{}
-		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(job.UID), Gid: uint32(job.GID)}
-	}
+	job.applySystemSettings(cmd)
 	cmd.Env = job.Env
 
 	var stdout bytes.Buffer
