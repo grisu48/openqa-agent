@@ -95,18 +95,81 @@ func getFileHandler() http.Handler {
 
 		buf := make([]byte, 4096)
 		for {
-			if n, err := file.Read(buf); err != nil {
+			n, err := file.Read(buf)
+			// Always write the data first
+			if n > 0 {
+				if _, err := w.Write(buf[:n]); err != nil {
+					// Assume connection has been closed and don't do anything
+					return
+				}
+			}
+			if err != nil {
 				if errors.Is(err, io.EOF) {
 					break
 				} else {
 					log.Fatalf("io error while reading '%s': %s", paths[0], err)
 					return
 				}
-			} else if _, err := w.Write(buf[:n]); err != nil {
-				// Assume connection has been closed and don't do anything
-				return
 			}
 		}
+	})
+}
+
+func putFileHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		values := r.URL.Query()
+		paths := values["path"]
+		if len(paths) <= 0 || paths[0] == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "{\"error\":\"missing 'path' argument\"}")
+			return
+		}
+
+		if r.Body == nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "{\"error\":\"missing body\"}")
+			return
+		}
+
+		// By default create or overwrite a file, and set the permissions to 0644
+		var mode os.FileMode = 0644
+		flag := os.O_WRONLY | os.O_CREATE | os.O_SYNC
+		file, err := os.OpenFile(paths[0], flag, mode)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
+			return
+		}
+		defer file.Close()
+
+		// Write body to file
+		buf := make([]byte, 4096)
+		var received uint64
+		for {
+			n, err := r.Body.Read(buf)
+			// Always write the data first
+			if n > 0 {
+				if _, err := file.Write(buf[:n]); err != nil {
+					log.Fatalf("io error while writing '%s': %s", paths[0], err)
+					w.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
+					return
+				}
+				received += uint64(n)
+			}
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				} else {
+					log.Fatalf("io error while receiving '%s': %s", paths[0], err)
+					w.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
+					return
+				}
+			}
+		}
+		w.WriteHeader(http.StatusAccepted)
+		fmt.Fprintf(w, "{\"status\":\"ok\",\"received\":%d}", received)
 	})
 }
 
