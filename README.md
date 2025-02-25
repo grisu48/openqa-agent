@@ -29,13 +29,16 @@ Use POST requests against the `/exec` endpoint to run custom commands. The body 
 ```json
 {
     "cmd":"executable",
+    "shell":"optional_shell",
     "uid": 1000,
     "gid": 1000,
+    "cwd":"/tmp",
     "timeout": 30,
 }
 ```
 
-The `cmd` argument is required and defined the command that will be executed. The response is again a json object:
+The `cmd` argument is the only argument required. It defines the command to be executed.
+The response is a json object with the following properties:
 
 ```json
 {
