@@ -25,6 +25,7 @@ func checkTokenHandler(next http.Handler) http.Handler {
 	})
 }
 
+// execHandler create a new http handler for executing commands
 func execHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var job ExecJob
@@ -75,6 +76,7 @@ func execHandler() http.Handler {
 	})
 }
 
+// getFileHandler create a new http handler for pulling files from the host
 func getFileHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		values := r.URL.Query()
@@ -136,6 +138,7 @@ func getFileHandler() http.Handler {
 	})
 }
 
+// putFileHandler create a new http handler for pushing files to the host
 func putFileHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		values := r.URL.Query()
@@ -194,6 +197,7 @@ func putFileHandler() http.Handler {
 	})
 }
 
+// healthHandler create a new http handler for checking the health of the agent
 func healthHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")

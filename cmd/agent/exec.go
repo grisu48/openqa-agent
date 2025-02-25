@@ -8,8 +8,10 @@ import (
 	"time"
 )
 
-const MAX_BUFFER = 1024 * 1024 * 64 // Maximum buffer size for stdout and stderr
+// Maximum buffer size for stdout and stderr
+const MAX_BUFFER = 1024 * 1024 * 64
 
+// ExecJob contains all information about
 type ExecJob struct {
 	Command string   `json:"cmd"`     // Command to be executed
 	UID     int      `json:"uid"`     // User ID of the command to be executed
@@ -23,6 +25,7 @@ type ExecJob struct {
 	stderr  []byte // Filled with the contents of stderr once executed
 }
 
+// Apply default settings on the job object
 func (job *ExecJob) SetDefaults() {
 	job.UID = 0
 	job.GID = 0
@@ -33,6 +36,7 @@ func (job *ExecJob) SetDefaults() {
 	job.stderr = nil
 }
 
+// Perform sanity checks on the job object
 func (job *ExecJob) SanityCheck() error {
 	if job.Command == "" {
 		return fmt.Errorf("no command")

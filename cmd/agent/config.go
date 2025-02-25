@@ -11,6 +11,7 @@ type Config struct {
 	BindAddress string  // Address the webserver binds to
 }
 
+// Authentication token object
 type Token struct {
 	Token string // Actual secret
 }
@@ -23,6 +24,7 @@ func (cf *Config) SetDefaults() {
 	cf.BindAddress = "127.0.0.1:8421"
 }
 
+// Parse program arguments and apply settings to the config instance
 func (cf *Config) ParseProgramArguments() error {
 	var token = flag.String("t", "", "authentication token")
 	var bind = flag.String("b", cf.BindAddress, "webserver bind ")
@@ -36,6 +38,7 @@ func (cf *Config) ParseProgramArguments() error {
 	return nil
 }
 
+// Perform sanity checks on the config and return errors find
 func (cf *Config) SanityCheck() error {
 	if len(cf.Token) == 0 {
 		return fmt.Errorf("no access tokens")
