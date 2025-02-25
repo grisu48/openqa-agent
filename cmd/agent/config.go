@@ -20,14 +20,18 @@ var config Config
 
 func (cf *Config) SetDefaults() {
 	cf.Token = make([]Token, 0)
-	cf.BindAddress = ":8421"
+	cf.BindAddress = "127.0.0.1:8421"
 }
 
 func (cf *Config) ParseProgramArguments() error {
 	var token = flag.String("t", "", "authentication token")
+	var bind = flag.String("b", cf.BindAddress, "webserver bind ")
 	flag.Parse()
 	if *token != "" {
 		cf.Token = append(cf.Token, Token{Token: *token})
+	}
+	if *bind != "" {
+		cf.BindAddress = *bind
 	}
 	return nil
 }
