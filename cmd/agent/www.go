@@ -157,7 +157,7 @@ func putFileHandler() http.Handler {
 
 		// By default create or overwrite a file, and set the permissions to 0644
 		var mode os.FileMode = 0644
-		flag := os.O_WRONLY | os.O_CREATE | os.O_SYNC
+		flag := os.O_WRONLY | os.O_CREATE
 		file, err := os.OpenFile(paths[0], flag, mode)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
