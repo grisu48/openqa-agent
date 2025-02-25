@@ -23,9 +23,11 @@ func main() {
 
 	// Run agent webserver
 	awaitTerminationSignal()
-	http.Handle("/health", healthHandler())
-	http.Handle("/health.json", healthHandler())
-	http.Handle("/exec", checkTokenHandler(execHandler()))
+	http.Handle("GET /health", healthHandler())
+	http.Handle("GET /status", healthHandler())
+	http.Handle("GET /health.json", healthHandler())
+	http.Handle("GET /status.json", healthHandler())
+	http.Handle("POST /exec", checkTokenHandler(execHandler()))
 	log.Printf("Listening on %s", config.BindAddress)
 	log.Fatal(http.ListenAndServe(config.BindAddress, nil))
 }
