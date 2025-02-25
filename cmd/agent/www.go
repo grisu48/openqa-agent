@@ -11,10 +11,10 @@ import (
 )
 
 // checkToken checks the given request for a valid authentication token. If not present it rejects the request.
-func checkTokenHandler(next http.Handler) http.Handler {
+func checkTokenHandler(next http.Handler, cf Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, token := range r.Header["Token"] {
-			if config.CheckToken(token) {
+			if cf.CheckToken(token) {
 				next.ServeHTTP(w, r)
 				return
 			}
