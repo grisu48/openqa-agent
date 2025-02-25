@@ -32,7 +32,7 @@ Use POST requests against the `/exec` endpoint to run custom commands. The body 
     "shell":"optional_shell",
     "uid": 1000,
     "gid": 1000,
-    "cwd":"/tmp",
+    "cwd": "/tmp",
     "timeout": 30,
 }
 ```
