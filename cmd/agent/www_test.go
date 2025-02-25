@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // return 200 and exit
@@ -44,28 +46,20 @@ func TestTokenHandler(t *testing.T) {
 	}
 
 	// Check unauthenticated requests
-	if res, err := checkRequest(""); err != nil {
-		t.Fatal(err)
-	} else if res != http.StatusForbidden {
-		t.Fatal("unauthenticated requests are allowed")
-	}
+	res, err := checkRequest("")
+	assert.NoError(t, err, "checkRequest should succeed")
+	assert.Equal(t, res, http.StatusForbidden, "unauthenticated requests should be forbidden")
 
 	// Check requests with wrong tokens
-	if res, err := checkRequest("nots3cr3t"); err != nil {
-		t.Fatal(err)
-	} else if res != http.StatusForbidden {
-		t.Fatal("unauthenticated requests are allowed")
-	}
+	res, err = checkRequest("nots3cr3t")
+	assert.NoError(t, err, "checkRequest should succeed")
+	assert.Equal(t, res, http.StatusForbidden, "requests with wrong token should be forbidden")
 
 	// Check requests with correct tokens
-	if res, err := checkRequest("secret_token"); err != nil {
-		t.Fatal(err)
-	} else if res != http.StatusAccepted {
-		t.Fatal("authenticated requests with token 1 is denied")
-	}
-	if res, err := checkRequest("secret_token_2"); err != nil {
-		t.Fatal(err)
-	} else if res != http.StatusAccepted {
-		t.Fatal("authenticated requests with token 2 is denied")
-	}
+	res, err = checkRequest("secret_token")
+	assert.NoError(t, err, "checkRequest should succeed")
+	assert.Equal(t, res, http.StatusAccepted, "requests with correct token 1 should succeed")
+	res, err = checkRequest("secret_token_2")
+	assert.NoError(t, err, "checkRequest should succeed")
+	assert.Equal(t, res, http.StatusAccepted, "requests with correct token 2 should succeed")
 }
