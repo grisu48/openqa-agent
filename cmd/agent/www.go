@@ -6,41 +6,54 @@ import (
 	"net/http"
 )
 
-type Handler func(http.ResponseWriter, *http.Request)
+// checkToken checks the given request for a valid authentication token. If not present it rejects the request.
+func checkTokenHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for _, token := range r.Header["Token"] {
+			if config.CheckToken(token) {
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+		// Deny request
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprintf(w, "{\"error\":\"denied\"}")
+	})
+}
 
-func createExecHandler() Handler {
-	return func(resp http.ResponseWriter, req *http.Request) {
+func execHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var job ExecJob
 		job.SetDefaults()
-		if err := json.NewDecoder(req.Body).Decode(&job); err != nil {
-			resp.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(resp, "{\"error\":\"%s\"}", err)
+		if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
 			return
 		}
 
 		// Sanity checks
 		if err := job.SanityCheck(); err != nil {
-			resp.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(resp, "{\"error\":\"%s\"}", err)
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
 			return
 		}
 
 		if err := job.exec(); err != nil {
-			resp.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(resp, "{\"error\":\"%s\"}", err)
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
 			return
 		} else {
-			resp.Header().Add("Content-Type", "application/json")
-			resp.WriteHeader(200)
-			fmt.Fprintf(resp, "{\"status\":\"ok\"}")
+			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(200)
+			fmt.Fprintf(w, "{\"status\":\"ok\"}")
 		}
-	}
+	})
 }
 
-func createHealthHandler() Handler {
-	return func(resp http.ResponseWriter, req *http.Request) {
-		resp.Header().Add("Content-Type", "application/json")
-		resp.WriteHeader(200)
-		fmt.Fprintf(resp, "{\"status\":\"ok\"}")
-	}
+func healthHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(200)
+		fmt.Fprintf(w, "{\"status\":\"ok\"}")
+	})
 }

@@ -10,12 +10,22 @@ import (
 )
 
 func main() {
+	// Read configuration
 	config.SetDefaults()
+	if err := config.ParseProgramArguments(); err != nil {
+		fmt.Fprintf(os.Stderr, "invalid program arguments: %s\n", err)
+		os.Exit(1)
+	}
+	if err := config.SanityCheck(); err != nil {
+		fmt.Fprintf(os.Stderr, "pre-flight check failed: %s\n", err)
+		os.Exit(1)
+	}
 
+	// Run agent webserver
 	awaitTerminationSignal()
-	http.HandleFunc("/health", createHealthHandler())
-	http.HandleFunc("/health.json", createHealthHandler())
-	http.HandleFunc("/exec", createExecHandler())
+	http.Handle("/health", healthHandler())
+	http.Handle("/health.json", healthHandler())
+	http.Handle("/exec", checkTokenHandler(execHandler()))
 	log.Printf("Listening on %s", config.BindAddress)
 	log.Fatal(http.ListenAndServe(config.BindAddress, nil))
 }
