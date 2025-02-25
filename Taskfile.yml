@@ -1,0 +1,16 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  test:
+    cmds:
+      - go test ./...
+  build:
+    cmds:
+      - go build -o agent ./...
+    sources:
+      - cmd/agent/*.go
+    generates:
+      - agent
