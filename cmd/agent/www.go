@@ -26,10 +26,11 @@ func checkTokenHandler(next http.Handler, cf Config) http.Handler {
 }
 
 // execHandler create a new http handler for executing commands
-func execHandler() http.Handler {
+func execHandler(cf Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var job ExecJob
 		job.SetDefaults()
+		job.Shell = cf.DefaultShell
 		if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "{\"error\":\"%s\"}", err)

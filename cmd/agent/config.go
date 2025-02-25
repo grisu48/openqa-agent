@@ -7,8 +7,9 @@ import (
 
 // Config hold the global program configuration
 type Config struct {
-	Token       []Token // Accepted authentication token
-	BindAddress string  // Address the webserver binds to
+	Token        []Token // Accepted authentication token
+	BindAddress  string  // Address the webserver binds to
+	DefaultShell string  // Optional argument to run each command in this shell by default
 }
 
 // Authentication token object
@@ -22,18 +23,23 @@ var config Config
 func (cf *Config) SetDefaults() {
 	cf.Token = make([]Token, 0)
 	cf.BindAddress = "127.0.0.1:8421"
+	cf.DefaultShell = ""
 }
 
 // Parse program arguments and apply settings to the config instance
 func (cf *Config) ParseProgramArguments() error {
 	var token = flag.String("t", "", "authentication token")
 	var bind = flag.String("b", cf.BindAddress, "webserver bind ")
+	var shell = flag.String("s", "", "default shell")
 	flag.Parse()
 	if *token != "" {
 		cf.Token = append(cf.Token, Token{Token: *token})
 	}
 	if *bind != "" {
 		cf.BindAddress = *bind
+	}
+	if *shell != "" {
+		cf.DefaultShell = *shell
 	}
 	return nil
 }

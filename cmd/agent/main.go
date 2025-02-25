@@ -27,7 +27,7 @@ func main() {
 	http.Handle("GET /status", healthHandler())
 	http.Handle("GET /health.json", healthHandler())
 	http.Handle("GET /status.json", healthHandler())
-	http.Handle("POST /exec", checkTokenHandler(execHandler(), config))
+	http.Handle("POST /exec", checkTokenHandler(execHandler(config), config))
 	http.Handle("GET /file", checkTokenHandler(getFileHandler(), config))
 	http.Handle("POST /file", checkTokenHandler(putFileHandler(), config))
 	log.Printf("Listening on %s", config.BindAddress)

@@ -13,6 +13,7 @@ const MAX_BUFFER = 1024 * 1024 * 64
 // ExecJob contains all information about
 type ExecJob struct {
 	Command string   `json:"cmd"`     // Command to be executed
+	Shell   string   `json:"shell"`   // Optional shell to run the command in
 	UID     int      `json:"uid"`     // User ID of the command to be executed
 	GID     int      `json:"gid"`     // Group ID of the command to be executed
 	Timeout int64    `json:"timeout"` // Timeout in seconds until the command is abandoned
@@ -55,12 +56,26 @@ func (job *ExecJob) SanityCheck() error {
 // exec runs the given command and returns its exit status.
 func (job *ExecJob) exec() error {
 	// Split command into arguments as expected by exec.Command
-	split := CommandSplit(job.Command)
+	command := job.Shell
 	args := make([]string, 0)
-	if len(split) > 1 {
-		args = split[1:]
+	if command == "" {
+		split := CommandSplit(job.Command)
+		command = split[0]
+		if len(split) > 1 {
+			args = split[1:]
+		}
+	} else {
+		// Apply shell expansions
+		shell := expandShell(command)
+		split := CommandSplit(shell)
+		command = split[0]
+		if len(split) > 1 {
+			args = split[1:]
+		}
+		args = append(args, job.Command)
 	}
-	cmd := exec.Command(split[0], args...)
+
+	cmd := exec.Command(command, args...)
 	job.applySystemSettings(cmd)
 	cmd.Env = job.Env
 
@@ -116,4 +131,24 @@ func (job *ExecJob) exec() error {
 	job.stderr = stderr.Bytes()
 	job.ret = cmd.ProcessState.ExitCode()
 	return ret
+}
+
+// Expands the shell name with the actual shell command
+func expandShell(shell string) string {
+	switch shell {
+	case "bash":
+		return "bash -c"
+	case "zsh":
+		return "zsh -c"
+	case "csh":
+		return "csh -c"
+	case "sh":
+		return "sh -c"
+	case "fish":
+		return "fish -c"
+	case "powershell":
+		return "powershell.exe"
+	default:
+		return shell
+	}
 }
