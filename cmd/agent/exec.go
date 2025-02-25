@@ -14,6 +14,7 @@ const MAX_BUFFER = 1024 * 1024 * 64
 type ExecJob struct {
 	Command string   `json:"cmd"`     // Command to be executed
 	Shell   string   `json:"shell"`   // Optional shell to run the command in
+	WorkDir string   `json:"cwd"`     // Optional work dir
 	UID     int      `json:"uid"`     // User ID of the command to be executed
 	GID     int      `json:"gid"`     // Group ID of the command to be executed
 	Timeout int64    `json:"timeout"` // Timeout in seconds until the command is abandoned
@@ -76,6 +77,7 @@ func (job *ExecJob) exec() error {
 	}
 
 	cmd := exec.Command(command, args...)
+	cmd.Dir = job.WorkDir
 	job.applySystemSettings(cmd)
 	cmd.Env = job.Env
 

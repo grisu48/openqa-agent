@@ -31,6 +31,7 @@ func execHandler(cf Config) http.Handler {
 		var job ExecJob
 		job.SetDefaults()
 		job.Shell = cf.DefaultShell
+		job.WorkDir = cf.DefaultWorkDir
 		if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "{\"error\":\"%s\"}", err)

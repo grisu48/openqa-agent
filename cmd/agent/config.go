@@ -5,11 +5,14 @@ import (
 	"fmt"
 )
 
+const DEFAULT_BIND_ADDRESS = "127.0.0.1:8421"
+
 // Config hold the global program configuration
 type Config struct {
-	Token        []Token // Accepted authentication token
-	BindAddress  string  // Address the webserver binds to
-	DefaultShell string  // Optional argument to run each command in this shell by default
+	Token          []Token // Accepted authentication token
+	BindAddress    string  // Address the webserver binds to
+	DefaultShell   string  // Optional argument to run each command in this shell by default
+	DefaultWorkDir string  // Default work dir for commands to be executed
 }
 
 // Authentication token object
@@ -22,15 +25,17 @@ var config Config
 
 func (cf *Config) SetDefaults() {
 	cf.Token = make([]Token, 0)
-	cf.BindAddress = "127.0.0.1:8421"
+	cf.BindAddress = DEFAULT_BIND_ADDRESS
 	cf.DefaultShell = ""
+	cf.DefaultWorkDir = ""
 }
 
 // Parse program arguments and apply settings to the config instance
 func (cf *Config) ParseProgramArguments() error {
 	var token = flag.String("t", "", "authentication token")
-	var bind = flag.String("b", cf.BindAddress, "webserver bind ")
+	var bind = flag.String("b", DEFAULT_BIND_ADDRESS, "webserver bind ")
 	var shell = flag.String("s", "", "default shell")
+	var workDir = flag.String("c", "", "default work dir")
 	flag.Parse()
 	if *token != "" {
 		cf.Token = append(cf.Token, Token{Token: *token})
@@ -40,6 +45,9 @@ func (cf *Config) ParseProgramArguments() error {
 	}
 	if *shell != "" {
 		cf.DefaultShell = *shell
+	}
+	if *workDir != "" {
+		cf.DefaultWorkDir = *workDir
 	}
 	return nil
 }
