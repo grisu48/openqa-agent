@@ -17,9 +17,10 @@ type ExecJob struct {
 	Timeout int64    `json:"timeout"` // Timeout in seconds until the command is abandoned
 	Env     []string `json:"env"`     // Environment variables
 
-	ret    error  // Return error object once executed
-	stdout []byte // Filled with the contents of stdout once executed
-	stderr []byte // Filled with the contents of stderr once executed
+	ret     int    // Return code of the job
+	runtime int64  // Runtime of the command in milliseconds
+	stdout  []byte // Filled with the contents of stdout once executed
+	stderr  []byte // Filled with the contents of stderr once executed
 }
 
 func (job *ExecJob) SetDefaults() {
@@ -27,7 +28,7 @@ func (job *ExecJob) SetDefaults() {
 	job.GID = 0
 	job.Timeout = 30
 	job.Env = make([]string, 0)
-	job.ret = nil
+	job.ret = 0
 	job.stdout = nil
 	job.stderr = nil
 }
@@ -80,8 +81,8 @@ func (job *ExecJob) exec() error {
 	go ReadPipe(stderrPipe, &stderr, MAX_BUFFER)
 
 	// Run command
+	job.runtime = time.Now().UnixMilli()
 	if err := cmd.Start(); err != nil {
-		job.ret = err
 		return err
 	}
 
@@ -97,19 +98,23 @@ func (job *ExecJob) exec() error {
 		err := cmd.Wait()
 		completed <- err
 	}()
+	var ret error
 	for running {
 		select {
-		case job.ret = <-completed:
+		case <-completed:
 			running = false
+			ret = nil // Don't tread failed commands as program errors
 		case <-timeout:
 			cmd.Process.Kill()
-			job.ret = fmt.Errorf("command timeout")
+			ret = fmt.Errorf("command timeout")
 			running = false
 		}
 	}
 
 	// Collect stats
+	job.runtime = time.Now().UnixMilli() - job.runtime
 	job.stdout = stdout.Bytes()
 	job.stderr = stderr.Bytes()
-	return job.ret
+	job.ret = cmd.ProcessState.ExitCode()
+	return ret
 }

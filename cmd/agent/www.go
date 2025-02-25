@@ -47,9 +47,30 @@ func execHandler() http.Handler {
 			fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
 			return
 		} else {
-			w.Header().Add("Content-Type", "application/json")
-			w.WriteHeader(200)
-			fmt.Fprintf(w, "{\"status\":\"ok\"}")
+			// Build reply object
+			type Reply struct {
+				Command    string `json:"cmd"`
+				Runtime    int64  `json:"runtime"`
+				ReturnCode int    `json:"ret"`
+				StdOut     string `json:"stdout"`
+				StdErr     string `json:"stderr"`
+			}
+			var reply Reply
+			reply.Command = job.Command
+			reply.Runtime = job.runtime
+			reply.ReturnCode = job.ret
+			reply.StdOut = string(job.stdout)
+			reply.StdErr = string(job.stderr)
+
+			if buf, err := json.Marshal(reply); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
+				return
+			} else {
+				w.Header().Add("Content-Type", "application/json")
+				w.WriteHeader(200)
+				w.Write(buf)
+			}
 		}
 	})
 }
