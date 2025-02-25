@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os/exec"
 	"time"
@@ -9,6 +10,9 @@ import (
 
 // Maximum buffer size for stdout and stderr
 const MAX_BUFFER = 1024 * 1024 * 64
+
+// TimeoutError occurs when a command runs into a timeout
+var TimeoutError = errors.New("command timeout")
 
 // ExecJob contains all information about
 type ExecJob struct {
@@ -122,7 +126,7 @@ func (job *ExecJob) exec() error {
 			ret = nil // Don't tread failed commands as program errors
 		case <-timeout:
 			cmd.Process.Kill()
-			ret = fmt.Errorf("command timeout")
+			ret = TimeoutError
 			running = false
 		}
 	}

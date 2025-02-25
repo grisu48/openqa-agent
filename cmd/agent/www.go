@@ -45,35 +45,41 @@ func execHandler(cf Config) http.Handler {
 			return
 		}
 
+		// Execute the command and collect the state. On TimeoutErrors we continue but will return a 524 status code
+		returnCode := http.StatusAccepted
 		if err := job.exec(); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			if errors.Is(err, TimeoutError) {
+				returnCode = 524
+			} else {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
+				return
+			}
+		}
+
+		// Build reply object
+		type Reply struct {
+			Command    string `json:"cmd"`
+			Runtime    int64  `json:"runtime"`
+			ReturnCode int    `json:"ret"`
+			StdOut     string `json:"stdout"`
+			StdErr     string `json:"stderr"`
+		}
+		var reply Reply
+		reply.Command = job.Command
+		reply.Runtime = job.runtime
+		reply.ReturnCode = job.ret
+		reply.StdOut = string(job.stdout)
+		reply.StdErr = string(job.stderr)
+
+		if buf, err := json.Marshal(reply); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
 			return
 		} else {
-			// Build reply object
-			type Reply struct {
-				Command    string `json:"cmd"`
-				Runtime    int64  `json:"runtime"`
-				ReturnCode int    `json:"ret"`
-				StdOut     string `json:"stdout"`
-				StdErr     string `json:"stderr"`
-			}
-			var reply Reply
-			reply.Command = job.Command
-			reply.Runtime = job.runtime
-			reply.ReturnCode = job.ret
-			reply.StdOut = string(job.stdout)
-			reply.StdErr = string(job.stderr)
-
-			if buf, err := json.Marshal(reply); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "{\"error\":\"%s\"}", err)
-				return
-			} else {
-				w.Header().Add("Content-Type", "application/json")
-				w.WriteHeader(200)
-				w.Write(buf)
-			}
+			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(returnCode)
+			w.Write(buf)
 		}
 	})
 }
