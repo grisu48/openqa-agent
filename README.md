@@ -58,3 +58,14 @@ You can use the `/files` endpoint to push/pull files. The endpoint takes a `path
 Use a GET request to pull a file and a POST request to push a file. The file is then in the http body.
 
 e.g. to get the file `/home/geekotest/123.txt` you need to do a GET request against `/files?path=/home/geekotest/123.txt`.
+
+## Discovery service
+
+The openqa-agent has an optional discovery function, which allows systems to probe for running openqa-agents.
+If enabled, the agent listens on a UDP port for broadcast messages. It replies then with a predefined Discovery json object of the following kind:
+
+```json
+{"agent":"openqa-agent","status":"ok","token":"<user_defined_token>"}
+```
+
+It's recommended to use the same port for discovery as for the agent itself (one is udp, one is tcp). The `token` allows to distinguish between different agents on the same network.
