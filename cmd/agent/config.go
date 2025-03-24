@@ -5,14 +5,16 @@ import (
 	"fmt"
 )
 
-const DEFAULT_BIND_ADDRESS = "127.0.0.1:8421"
+const DEFAULT_ADDRESS = "127.0.0.1:8421"
 
 // Config hold the global program configuration
 type Config struct {
-	Token          []Token // Accepted authentication token
-	BindAddress    string  // Address the webserver binds to
-	DefaultShell   string  // Optional argument to run each command in this shell by default
-	DefaultWorkDir string  // Default work dir for commands to be executed
+	Token            []Token // Accepted authentication token
+	BindAddress      string  // Address the webserver binds to
+	DiscoveryAddress string  // Address where the discovery service runs
+	DiscoveryToken   string  // Unique token for the discovery service, if present
+	DefaultShell     string  // Optional argument to run each command in this shell by default
+	DefaultWorkDir   string  // Default work dir for commands to be executed
 }
 
 // Authentication token object
@@ -25,17 +27,21 @@ var config Config
 
 func (cf *Config) SetDefaults() {
 	cf.Token = make([]Token, 0)
-	cf.BindAddress = DEFAULT_BIND_ADDRESS
+	cf.BindAddress = DEFAULT_ADDRESS
 	cf.DefaultShell = ""
 	cf.DefaultWorkDir = ""
+	cf.DiscoveryAddress = ""
+	cf.DiscoveryToken = ""
 }
 
 // Parse program arguments and apply settings to the config instance
 func (cf *Config) ParseProgramArguments() error {
 	var token = flag.String("t", "", "authentication token")
-	var bind = flag.String("b", DEFAULT_BIND_ADDRESS, "webserver bind ")
+	var bind = flag.String("b", DEFAULT_ADDRESS, "webserver bind ")
 	var shell = flag.String("s", "", "default shell")
 	var workDir = flag.String("c", "", "default work dir")
+	var discovery = flag.String("d", "", "server discovery address")
+	var discoveryToken = flag.String("i", "", "discovery token")
 	flag.Parse()
 	if *token != "" {
 		cf.Token = append(cf.Token, Token{Token: *token})
@@ -48,6 +54,12 @@ func (cf *Config) ParseProgramArguments() error {
 	}
 	if *workDir != "" {
 		cf.DefaultWorkDir = *workDir
+	}
+	if *discovery != "" {
+		cf.DiscoveryAddress = *discovery
+	}
+	if *discoveryToken != "" {
+		cf.DiscoveryToken = *discoveryToken
 	}
 	return nil
 }

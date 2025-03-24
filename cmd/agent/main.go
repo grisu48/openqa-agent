@@ -21,6 +21,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Run discovery service
+	if config.DiscoveryAddress != "" {
+		if err := RunDiscoveryService(config.DiscoveryAddress, config.DiscoveryToken); err != nil {
+			fmt.Fprintf(os.Stderr, "discovery service error: %s\n", err)
+			os.Exit(1)
+		}
+		log.Printf("openqa-agent discovery running: %s", config.DiscoveryAddress)
+	}
+
 	// Run agent webserver
 	awaitTerminationSignal()
 	http.Handle("GET /health", healthHandler())
@@ -30,7 +39,7 @@ func main() {
 	http.Handle("POST /exec", checkTokenHandler(execHandler(config), config))
 	http.Handle("GET /file", checkTokenHandler(getFileHandler(), config))
 	http.Handle("POST /file", checkTokenHandler(putFileHandler(), config))
-	log.Printf("Listening on %s", config.BindAddress)
+	log.Printf("openqa-agent running: %s", config.BindAddress)
 	log.Fatal(http.ListenAndServe(config.BindAddress, nil))
 }
 
