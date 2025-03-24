@@ -22,6 +22,8 @@ The agent runs by default on port 8421. The agent requires a custom authenticato
 | `/file` | GET | Get a file from server (see below) |
 | `/file` | POST | Push a file to server (see below) |
 
+Most API endpoints require a `Token` item in the http header for authentication.
+
 ### Run a command
 
 Use POST requests against the `/exec` endpoint to run custom commands. The body is expected to be a json object of the following kind:
