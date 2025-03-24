@@ -8,6 +8,7 @@
 *.so
 *.dylib
 /agent
+/agent-*
 
 # Test binary, built with `go test -c`
 *.test
