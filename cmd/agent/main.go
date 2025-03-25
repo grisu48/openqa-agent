@@ -58,6 +58,10 @@ func main() {
 		}()
 	}
 
+	if err := RunService(); err != nil {
+		log.Fatalf("error running as service: %e", err)
+		os.Exit(1)
+	}
 	awaitTerminationSignal()
 	os.Exit(1)
 }
