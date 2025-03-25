@@ -26,7 +26,8 @@ Most API endpoints require a `Token` item in the http header for authentication.
 
 ### Run a command
 
-Use POST requests against the `/exec` endpoint to run custom commands. The body is expected to be a json object of the following kind:
+Use POST requests against the `/exec` endpoint to run custom commands (requires `Token` header for authentication).
+The body is expected to be a json object of the following kind:
 
 ```json
 {
@@ -40,11 +41,12 @@ Use POST requests against the `/exec` endpoint to run custom commands. The body 
 ```
 
 The `cmd` argument is the only argument required. It defines the command to be executed.
-The response is a json object with the following properties:
+The response is a `Reply` json object, e.g.
 
 ```json
 {
   "cmd": "echo 'hello world'",
+  "shell": "bash",
   "runtime": 11,
   "ret": 0,
   "stdout": "hello world\n",
@@ -61,7 +63,7 @@ e.g. to get the file `/home/geekotest/123.txt` you need to do a GET request agai
 
 ## Discovery service
 
-The openqa-agent has an optional discovery function, which allows systems to probe for running openqa-agents.
+`openqa-agent` has an optional discovery function, which allows systems to probe for running openqa-agents.
 If enabled, the agent listens on a UDP port for broadcast messages. It replies then with a predefined Discovery json object of the following kind:
 
 ```json
@@ -69,3 +71,15 @@ If enabled, the agent listens on a UDP port for broadcast messages. It replies t
 ```
 
 It's recommended to use the same port for discovery as for the agent itself (one is udp, one is tcp). The `token` allows to distinguish between different agents on the same network.
+
+## Serial terminal
+
+`openqa-agent` can receive commands from a serial terminal, execute them and send a `Reply` json object back, e.g.
+
+```json
+{"cmd":"echo hello world","shell":"powershell","runtime":291,"ret":0,"stdout":"hello\r\nworld\r\n","stderr":""}
+```
+
+`openqa-agent` can run on a serial terminal and/or as a webserver, but at least one of them must be active.
+
+File push/pull is not supported via the serial terminal.
