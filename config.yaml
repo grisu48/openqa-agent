@@ -18,3 +18,4 @@ discovery:
 
 serial:
   port: '/dev/ttyS0,115200'
+  serialized: true
