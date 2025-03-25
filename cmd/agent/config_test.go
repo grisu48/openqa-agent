@@ -43,3 +43,24 @@ func TestSanityCheck(t *testing.T) {
 	cf.Serial.SerialPort = "/dev/ttyS0:115200"
 	assert.NoError(t, cf.SanityCheck(), "sanity checks should pass with webserver and serial port on")
 }
+
+func TestYaml(t *testing.T) {
+	var cf Config
+	cf.SetDefaults()
+	assert.NoError(t, cf.LoadYaml("../../config.yaml"), "loading example yaml should succeed")
+	// Check applied settings
+	assert.Equal(t, "bash", cf.DefaultShell)
+	assert.Equal(t, "/home/geekotest", cf.DefaultWorkDir)
+	// Webserver
+	assert.Equal(t, ":8421", cf.Webserver.BindAddress)
+	// Webserver tokens
+	assert.NotEmpty(t, cf.Webserver.Token)
+	assert.True(t, cf.CheckToken("nots3cr3t"), "first token should work")
+	assert.True(t, cf.CheckToken("passw0rd"), "second token should work")
+	assert.False(t, cf.CheckToken("password"), "wrong token should not work")
+	// Discovery
+	assert.Equal(t, ":8421", cf.Discovery.DiscoveryAddress)
+	assert.Equal(t, "openqa-agent-1", cf.Discovery.DiscoveryToken)
+	// Serial port
+	assert.Equal(t, "/dev/ttyS0,115200", cf.Serial.SerialPort)
+}

@@ -1,32 +1,36 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
+	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 // Config hold the global program configuration
 type Config struct {
-	Webserver      Webserver // Webserver configuration
-	Discovery      Discovery // Discovery configuration
-	Serial         Serial    // Serial port configuration
-	DefaultShell   string    // Optional argument to run each command in this shell by default
-	DefaultWorkDir string    // Default work dir for commands to be executed
+	Webserver      Webserver `yaml:"webserver"` // Webserver configuration
+	Discovery      Discovery `yaml:"discovery"` // Discovery configuration
+	Serial         Serial    `yaml:"serial"`    // Serial port configuration
+	DefaultShell   string    `yaml:"shell"`     // Optional argument to run each command in this shell by default
+	DefaultWorkDir string    `yaml:"workdir"`   // Default work dir for commands to be executed
 
 }
 
 type Webserver struct {
-	Token       []Token // Accepted authentication token
-	BindAddress string  // Address the webserver binds to
+	Token       []Token `yaml:"token"` // Accepted authentication token
+	BindAddress string  `yaml:"bind"`  // Address the webserver binds to
 }
 
 type Discovery struct {
-	DiscoveryAddress string // Address where the discovery service runs
-	DiscoveryToken   string // Unique token for the discovery service, if present
+	DiscoveryAddress string `yaml:"bind"`  // Address where the discovery service runs
+	DiscoveryToken   string `yaml:"token"` // Unique token for the discovery service, if present
 }
 
 type Serial struct {
-	SerialPort string // Serial Port where the agent should run on. Format: DEVICE[:BAUD]
+	SerialPort string `yaml:"port"` // Serial Port where the agent should run on. Format: DEVICE[:BAUD]
 }
 
 // Authentication token object
@@ -56,6 +60,7 @@ func (cf *Config) ParseProgramArguments() error {
 	var discovery = flag.String("d", "", "server discovery address")
 	var discoveryToken = flag.String("i", "", "discovery token")
 	var serialPort = flag.String("p", "", "serial port (PORT[:BAUD,PARITY,DATABITS,STOPBITS])")
+	var yamlFile = flag.String("f", "", "yaml configuration file")
 	flag.Parse()
 	if *token != "" {
 		cf.Webserver.Token = append(cf.Webserver.Token, Token{Token: *token})
@@ -78,7 +83,32 @@ func (cf *Config) ParseProgramArguments() error {
 	if *serialPort != "" {
 		cf.Serial.SerialPort = *serialPort
 	}
+	// Note: Load yaml file must happen at last
+	if *yamlFile != "" {
+		if err := cf.LoadYaml(*yamlFile); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+// Load settings from a yaml file
+func (cf *Config) LoadYaml(filename string) error {
+	f, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	return yaml.Unmarshal(f, cf)
+}
+
+func (cf *Config) LoadDefaultConfig() error {
+	if _, err := os.Stat(DEFAULT_CONFIG_PATH); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
+	}
+	return cf.LoadYaml(DEFAULT_CONFIG_PATH)
 }
 
 // Perform sanity checks on the config and return errors find

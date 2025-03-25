@@ -12,6 +12,10 @@ import (
 func main() {
 	// Read configuration
 	config.SetDefaults()
+	if err := config.LoadDefaultConfig(); err != nil {
+		fmt.Fprintf(os.Stderr, "error loading default configuration: %s\n", err)
+		os.Exit(1)
+	}
 	if err := config.ParseProgramArguments(); err != nil {
 		fmt.Fprintf(os.Stderr, "invalid program arguments: %s\n", err)
 		os.Exit(1)

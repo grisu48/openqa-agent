@@ -1,0 +1,20 @@
+---
+## Example yaml file for openqa-agent
+
+shell: 'bash'
+workdir: '/home/geekotest'
+
+webserver:
+  bind: ':8421'
+  token:
+    - Token:
+      token: 'nots3cr3t'
+    - Token:
+      token: 'passw0rd'
+
+discovery:
+  bind: ':8421'
+  token: 'openqa-agent-1'
+
+serial:
+  port: '/dev/ttyS0,115200'
