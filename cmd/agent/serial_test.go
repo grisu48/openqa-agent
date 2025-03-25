@@ -42,6 +42,7 @@ func TestSerialTerminal(t *testing.T) {
 
 	conf.DefaultShell = "bash"
 	conf.DefaultWorkDir = ""
+	conf.Serial.Serialized = false
 
 	// Run single command
 	terminal.in.Write([]byte("true\n"))
@@ -166,5 +167,26 @@ func TestSerialTerminalParsing(t *testing.T) {
 	expected = defaults
 	expected.StopBits = sr.OnePointFiveStopBits
 	assertMode(mode, &expected)
+}
 
+func TestSerialization(t *testing.T) {
+	var conf Config
+	var reply Reply
+	terminal := NewTerminalEmulator()
+
+	conf.DefaultShell = "bash"
+	conf.DefaultWorkDir = ""
+	conf.Serial.Serialized = true
+
+	// Run command 10 times to ensure the serialization can properly distinguish between runs
+	for range 10 {
+		terminal.in.Write([]byte("true"))
+		runSerialTerminalAgent(&terminal, conf)
+		buf, err := terminal.out.ReadBytes(0)
+		assert.NoError(t, err, "reading until termination symbol should succeed")
+		assert.Greater(t, len(buf), 1, "reply buffer should be larger than 1 character")
+		buf = buf[:len(buf)-1] // Remove termination character
+		assert.NoError(t, json.Unmarshal(buf, &reply))
+		assert.Equal(t, 0, reply.ReturnCode, "echo command should succeed")
+	}
 }

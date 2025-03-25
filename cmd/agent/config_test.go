@@ -14,6 +14,7 @@ func TestDefaults(t *testing.T) {
 	assert.Empty(t, cf.DefaultWorkDir, "default work dir must be empty")
 	assert.Empty(t, cf.Webserver.BindAddress, "BindAddress should be empty by default")
 	assert.Empty(t, cf.Serial.SerialPort, "SerialPort should be empty by default")
+	assert.True(t, cf.Serial.Serialized, "Serialized should be enabled by default")
 }
 
 func TestTokens(t *testing.T) {
@@ -63,4 +64,5 @@ func TestYaml(t *testing.T) {
 	assert.Equal(t, "openqa-agent-1", cf.Discovery.DiscoveryToken)
 	// Serial port
 	assert.Equal(t, "/dev/ttyS0,115200", cf.Serial.SerialPort)
+	assert.True(t, cf.Serial.Serialized)
 }

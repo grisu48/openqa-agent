@@ -30,7 +30,8 @@ type Discovery struct {
 }
 
 type Serial struct {
-	SerialPort string `yaml:"port"` // Serial Port where the agent should run on. Format: DEVICE[:BAUD]
+	SerialPort string `yaml:"port"`       // Serial Port where the agent should run on. Format: DEVICE[:BAUD]
+	Serialized bool   `yaml:"serialized"` // Terminate result object with a \0
 }
 
 // Authentication token object
@@ -49,6 +50,7 @@ func (cf *Config) SetDefaults() {
 	cf.Discovery.DiscoveryAddress = ""
 	cf.Discovery.DiscoveryToken = ""
 	cf.Serial.SerialPort = ""
+	cf.Serial.Serialized = true
 }
 
 // Parse program arguments and apply settings to the config instance
