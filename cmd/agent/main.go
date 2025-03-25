@@ -30,26 +30,38 @@ func main() {
 		log.Printf("openqa-agent discovery running: %s", config.DiscoveryAddress)
 	}
 
+	// Run agent serial terminal
+	if config.SerialPort != "" {
+		if err := RunSerialTerminalAgent(config.SerialPort, config); err != nil {
+			fmt.Fprintf(os.Stderr, "serial port error: %s\n", err)
+			os.Exit(1)
+		}
+		log.Printf("openqa-agent running on serial port %s", config.SerialPort)
+	}
+
 	// Run agent webserver
+	if config.BindAddress != "" {
+		http.Handle("GET /health", healthHandler())
+		http.Handle("GET /status", healthHandler())
+		http.Handle("GET /health.json", healthHandler())
+		http.Handle("GET /status.json", healthHandler())
+		http.Handle("POST /exec", checkTokenHandler(execHandler(config), config))
+		http.Handle("GET /file", checkTokenHandler(getFileHandler(), config))
+		http.Handle("POST /file", checkTokenHandler(putFileHandler(), config))
+		log.Printf("openqa-agent running: %s", config.BindAddress)
+		go func() {
+			log.Fatal(http.ListenAndServe(config.BindAddress, nil))
+		}()
+	}
+
 	awaitTerminationSignal()
-	http.Handle("GET /health", healthHandler())
-	http.Handle("GET /status", healthHandler())
-	http.Handle("GET /health.json", healthHandler())
-	http.Handle("GET /status.json", healthHandler())
-	http.Handle("POST /exec", checkTokenHandler(execHandler(config), config))
-	http.Handle("GET /file", checkTokenHandler(getFileHandler(), config))
-	http.Handle("POST /file", checkTokenHandler(putFileHandler(), config))
-	log.Printf("openqa-agent running: %s", config.BindAddress)
-	log.Fatal(http.ListenAndServe(config.BindAddress, nil))
+	os.Exit(1)
 }
 
 // awaits SIGINT or SIGTERM
 func awaitTerminationSignal() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		sig := <-sigs
-		fmt.Println(sig)
-		os.Exit(1)
-	}()
+	sig := <-sigs
+	fmt.Println(sig)
 }

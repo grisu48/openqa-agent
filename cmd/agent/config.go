@@ -5,8 +5,6 @@ import (
 	"fmt"
 )
 
-const DEFAULT_ADDRESS = "127.0.0.1:8421"
-
 // Config hold the global program configuration
 type Config struct {
 	Token            []Token // Accepted authentication token
@@ -15,6 +13,7 @@ type Config struct {
 	DiscoveryToken   string  // Unique token for the discovery service, if present
 	DefaultShell     string  // Optional argument to run each command in this shell by default
 	DefaultWorkDir   string  // Default work dir for commands to be executed
+	SerialPort       string  // Serial Port where the agent should run on. Format: DEVICE[:BAUD]
 }
 
 // Authentication token object
@@ -27,21 +26,23 @@ var config Config
 
 func (cf *Config) SetDefaults() {
 	cf.Token = make([]Token, 0)
-	cf.BindAddress = DEFAULT_ADDRESS
+	cf.BindAddress = ""
 	cf.DefaultShell = ""
 	cf.DefaultWorkDir = ""
 	cf.DiscoveryAddress = ""
 	cf.DiscoveryToken = ""
+	cf.SerialPort = ""
 }
 
 // Parse program arguments and apply settings to the config instance
 func (cf *Config) ParseProgramArguments() error {
 	var token = flag.String("t", "", "authentication token")
-	var bind = flag.String("b", DEFAULT_ADDRESS, "webserver bind ")
+	var bind = flag.String("b", "", "webserver server address")
 	var shell = flag.String("s", "", "default shell")
 	var workDir = flag.String("c", "", "default work dir")
 	var discovery = flag.String("d", "", "server discovery address")
 	var discoveryToken = flag.String("i", "", "discovery token")
+	var serialPort = flag.String("p", "", "serial port (PORT[:BAUD,PARITY,DATABITS,STOPBITS])")
 	flag.Parse()
 	if *token != "" {
 		cf.Token = append(cf.Token, Token{Token: *token})
@@ -61,13 +62,19 @@ func (cf *Config) ParseProgramArguments() error {
 	if *discoveryToken != "" {
 		cf.DiscoveryToken = *discoveryToken
 	}
+	if *serialPort != "" {
+		cf.SerialPort = *serialPort
+	}
 	return nil
 }
 
 // Perform sanity checks on the config and return errors find
 func (cf *Config) SanityCheck() error {
-	if len(cf.Token) == 0 {
-		return fmt.Errorf("no access tokens")
+	if cf.BindAddress != "" && len(cf.Token) == 0 {
+		return fmt.Errorf("no access tokens for webserver")
+	}
+	if cf.BindAddress == "" && cf.SerialPort == "" {
+		return fmt.Errorf("neither serial nor webserver defined")
 	}
 	return nil
 }

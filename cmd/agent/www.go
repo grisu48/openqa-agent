@@ -57,14 +57,6 @@ func execHandler(cf Config) http.Handler {
 			}
 		}
 
-		// Build reply object
-		type Reply struct {
-			Command    string `json:"cmd"`
-			Runtime    int64  `json:"runtime"`
-			ReturnCode int    `json:"ret"`
-			StdOut     string `json:"stdout"`
-			StdErr     string `json:"stderr"`
-		}
 		var reply Reply
 		reply.Command = job.Command
 		reply.Runtime = job.runtime
