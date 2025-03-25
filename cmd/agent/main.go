@@ -22,25 +22,25 @@ func main() {
 	}
 
 	// Run discovery service
-	if config.DiscoveryAddress != "" {
-		if err := RunDiscoveryService(config.DiscoveryAddress, config.DiscoveryToken); err != nil {
+	if config.Discovery.DiscoveryAddress != "" {
+		if err := RunDiscoveryService(config.Discovery.DiscoveryAddress, config.Discovery.DiscoveryToken); err != nil {
 			fmt.Fprintf(os.Stderr, "discovery service error: %s\n", err)
 			os.Exit(1)
 		}
-		log.Printf("openqa-agent discovery running: %s", config.DiscoveryAddress)
+		log.Printf("openqa-agent discovery running: %s", config.Discovery.DiscoveryAddress)
 	}
 
 	// Run agent serial terminal
-	if config.SerialPort != "" {
-		if err := RunSerialTerminalAgent(config.SerialPort, config); err != nil {
+	if config.Serial.SerialPort != "" {
+		if err := RunSerialTerminalAgent(config.Serial.SerialPort, config); err != nil {
 			fmt.Fprintf(os.Stderr, "serial port error: %s\n", err)
 			os.Exit(1)
 		}
-		log.Printf("openqa-agent running on serial port %s", config.SerialPort)
+		log.Printf("openqa-agent running on serial port %s", config.Serial.SerialPort)
 	}
 
 	// Run agent webserver
-	if config.BindAddress != "" {
+	if config.Webserver.BindAddress != "" {
 		http.Handle("GET /health", healthHandler())
 		http.Handle("GET /status", healthHandler())
 		http.Handle("GET /health.json", healthHandler())
@@ -48,9 +48,9 @@ func main() {
 		http.Handle("POST /exec", checkTokenHandler(execHandler(config), config))
 		http.Handle("GET /file", checkTokenHandler(getFileHandler(), config))
 		http.Handle("POST /file", checkTokenHandler(putFileHandler(), config))
-		log.Printf("openqa-agent running: %s", config.BindAddress)
+		log.Printf("openqa-agent running: %s", config.Webserver.BindAddress)
 		go func() {
-			log.Fatal(http.ListenAndServe(config.BindAddress, nil))
+			log.Fatal(http.ListenAndServe(config.Webserver.BindAddress, nil))
 		}()
 	}
 

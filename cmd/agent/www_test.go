@@ -19,8 +19,8 @@ func dummyHandler() http.Handler {
 func TestTokenHandler(t *testing.T) {
 	var cf Config
 	cf.SetDefaults()
-	cf.Token = append(cf.Token, Token{Token: "secret_token"})
-	cf.Token = append(cf.Token, Token{Token: "secret_token_2"})
+	cf.Webserver.Token = append(cf.Webserver.Token, Token{Token: "secret_token"})
+	cf.Webserver.Token = append(cf.Webserver.Token, Token{Token: "secret_token_2"})
 
 	sm := http.NewServeMux()
 	sm.Handle("/dummy", checkTokenHandler(dummyHandler(), cf))
