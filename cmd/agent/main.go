@@ -12,6 +12,7 @@ import (
 func main() {
 	// Read configuration
 	config.SetDefaults()
+	config.SetSystemDefaults()
 	if err := config.LoadDefaultConfig(); err != nil {
 		fmt.Fprintf(os.Stderr, "error loading default configuration: %s\n", err)
 		os.Exit(1)

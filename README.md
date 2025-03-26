@@ -83,3 +83,5 @@ It's recommended to use the same port for discovery as for the agent itself (one
 `openqa-agent` can run on a serial terminal and/or as a webserver, but at least one of them must be active.
 
 File push/pull is not supported via the serial terminal.
+
+On Windows, the serial terminal is enabled by default. On Linux it is disabled by default to avoid conflicts with `getty`.
