@@ -7,7 +7,7 @@
 *.dll
 *.so
 *.dylib
-/agent
+/openqa-agent
 /agent-*
 
 # Test binary, built with `go test -c`
