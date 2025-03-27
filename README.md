@@ -3,17 +3,33 @@
 Minimalistic cross-platform agent for openQA. This is an experiment to allow openQA to connect to non-Linux hosts 
 via a new cross-platform backend and agent. This is the agent part.
 
-The agent runs as a webserver that allows the backend to execute arbitrary commands and push/pull files to the host.
+The agent runs as a webserver and/or serial port server that allows the backend to execute arbitrary commands and push/pull files to the host.
 
 ## How does this work?
 
 The agent runs by default on port 8421. The agent requires a custom authenticaton token, provided via the `-t` flag. An authentication token is a secret, required to be allowed access to the agent. Each request needs to pass the token via the `Token` http header.
 
-1. Compile the agent `go build ./...`
-2. Run the agent with a custom authentication token `./agent -t TOKEN`
-3. Perform commands against the REST API
+The agent can run also on a serial port. It accepts commands, which are either json-encoded `Job` objects or simple commands separated by a newline character.
+
+`openqa-agent` can run on a serial terminal and/or as a webserver, but at least one of them must be active.
+
+### Building
+
+Compile the agent `go build ./...` or use the provided [Taskfile](https://taskfile.dev/)
+
+```
+$ task build
+```
 
 ## REST API
+
+Run the agent with a custom authentication token and and optional bind argument:
+
+```
+./openqa-agent -t TOKEN [-b 127.0.0.1:8421]
+```
+
+Then you can perform actions against the exposed REST API:
 
 | Path | Method | Description |
 |------|--------|-------------|
@@ -80,8 +96,14 @@ It's recommended to use the same port for discovery as for the agent itself (one
 {"cmd":"echo hello world","shell":"powershell","runtime":291,"ret":0,"stdout":"hello\r\nworld\r\n","stderr":""}
 ```
 
-`openqa-agent` can run on a serial terminal and/or as a webserver, but at least one of them must be active.
-
 File push/pull is not supported via the serial terminal.
 
 On Windows, the serial terminal is enabled by default. On Linux it is disabled by default to avoid conflicts with `getty`.
+
+The serial terminal accepts either plain text commands or the same json objects as the REST API:
+
+```json
+{ "cmd":"executable","shell":"optional_shell","uid": 1000,"gid": 1000,"cwd": "/tmp","timeout": 30, }
+```
+
+The `cmd` parameter is required, all other parameters are optional.
