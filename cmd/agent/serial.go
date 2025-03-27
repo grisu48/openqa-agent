@@ -142,21 +142,27 @@ func runSerialTerminalAgent(stream io.ReadWriter, conf Config) error {
 			job.Command = command
 		}
 
-		err := job.exec()
-
 		var reply Reply
 		reply.Command = job.Command
 		reply.Shell = job.Shell
-		reply.Runtime = job.runtime
-		reply.ReturnCode = job.ret
-		reply.StdOut = string(job.stdout)
-		reply.StdErr = string(job.stderr)
-		if err != nil {
-			if errors.Is(err, TimeoutError) {
-				reply.ReturnCode = 124
-			} else {
-				log.Fatalf("execution of '%s' failed: %s", command, err)
-				reply.ReturnCode = -1
+		if err := job.SanityCheck(); err != nil {
+			reply.Runtime = 0
+			reply.ReturnCode = -1
+			reply.StdErr = err.Error()
+		} else {
+			err := job.exec()
+
+			reply.Runtime = job.runtime
+			reply.ReturnCode = job.ret
+			reply.StdOut = string(job.stdout)
+			reply.StdErr = string(job.stderr)
+			if err != nil {
+				if errors.Is(err, TimeoutError) {
+					reply.ReturnCode = 124
+				} else {
+					log.Fatalf("execution of '%s' failed: %s", command, err)
+					reply.ReturnCode = -1
+				}
 			}
 		}
 
