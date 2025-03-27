@@ -32,7 +32,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "discovery service error: %s\n", err)
 			os.Exit(1)
 		}
-		log.Printf("openqa-agent discovery running: %s", config.Discovery.DiscoveryAddress)
+		log.Printf("openqa-agent discovery listening on %s", config.Discovery.DiscoveryAddress)
 	}
 
 	// Run agent serial terminal
@@ -41,7 +41,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "serial port error: %s\n", err)
 			os.Exit(1)
 		}
-		log.Printf("openqa-agent running on serial port %s", config.Serial.SerialPort)
+		log.Printf("openqa-agent listening on serial port %s", config.Serial.SerialPort)
 	}
 
 	// Run agent webserver
@@ -53,16 +53,18 @@ func main() {
 		http.Handle("POST /exec", checkTokenHandler(execHandler(config), config))
 		http.Handle("GET /file", checkTokenHandler(getFileHandler(), config))
 		http.Handle("POST /file", checkTokenHandler(putFileHandler(), config))
-		log.Printf("openqa-agent running: %s", config.Webserver.BindAddress)
+		log.Printf("openqa-agent listening on %s", config.Webserver.BindAddress)
 		go func() {
 			log.Fatal(http.ListenAndServe(config.Webserver.BindAddress, nil))
 		}()
 	}
 
+	// Run as service. This is currently relevent for Windows only to report back a healthy state
 	if err := RunService(); err != nil {
 		log.Fatalf("error running as service: %e", err)
 		os.Exit(1)
 	}
+
 	awaitTerminationSignal()
 	os.Exit(1)
 }
