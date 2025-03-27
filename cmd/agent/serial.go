@@ -125,23 +125,27 @@ func runSerialTerminalAgent(stream io.ReadWriter, conf Config) error {
 		if command == "" || len(command) < 1 {
 			continue
 		}
-		if command[0] == ':' {
-			// Reserved for special commands, not used currently
-			continue
-		}
 
 		// By design, each command will get it's own fresh struct. This is to avoid possible carry-over of some properties.
 		var job ExecJob
 		job.SetDefaults()
 		job.Shell = conf.DefaultShell
 		job.WorkDir = conf.DefaultWorkDir
-		job.Command = command
 		job.Timeout = 60
+
+		// Try to parse the lines as json. Tread it as raw command, if it fails.
+		if err := json.Unmarshal([]byte(command), &job); err != nil {
+			if command[0] == ':' {
+				// Reserved for special commands, not used currently
+				continue
+			}
+			job.Command = command
+		}
 
 		err := job.exec()
 
 		var reply Reply
-		reply.Command = command
+		reply.Command = job.Command
 		reply.Shell = job.Shell
 		reply.Runtime = job.runtime
 		reply.ReturnCode = job.ret

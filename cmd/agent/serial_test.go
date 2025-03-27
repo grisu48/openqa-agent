@@ -73,6 +73,23 @@ func TestSerialTerminal(t *testing.T) {
 	assert.NoError(t, decoder.Decode(&reply), "reply parsing should succeed")
 	assert.NotEqual(t, 0, reply.ReturnCode, "return code for `false` should not be 0")
 	assert.Equal(t, "false", reply.Command, "command should be `false`")
+
+	terminal.Clear()
+	decoder = json.NewDecoder(terminal.out)
+
+	// Check if json command parsing works
+	terminal.in.Write([]byte("{\"cmd\":\"true\"}\n"))
+	terminal.in.Write([]byte("{\"cmd\":\"true\",\"shell\":\"bash\"}\n"))
+	terminal.in.Write([]byte("{\"cmd\":\"sleep 1\"}\n"))
+	runSerialTerminalAgent(&terminal, conf)
+	assert.NoError(t, decoder.Decode(&reply), "reply parsing should succeed")
+	assert.Equal(t, 0, reply.ReturnCode, "return code for json-encoded `true` should be 0")
+	assert.NoError(t, decoder.Decode(&reply), "reply parsing should succeed")
+	assert.Equal(t, 0, reply.ReturnCode, "return code for json-encoded `true` should be 0")
+	assert.NoError(t, decoder.Decode(&reply), "reply parsing should succeed")
+	assert.Equal(t, 0, reply.ReturnCode, "return code for `sleep 1` should be 0")
+	assert.Equal(t, "sleep 1", reply.Command, "command should be `sleep 1`")
+
 }
 
 func TestSerialTerminalParsing(t *testing.T) {
