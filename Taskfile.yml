@@ -9,20 +9,14 @@ tasks:
       - go test ./...
   default:
     cmds:
-      - go build -o agent ./...
+      - go build -o openqa-agent ./...
     sources:
       - cmd/agent/*.go
     aliases: [build, agent]
     depends:
       - test
     generates:
-      - agent-Linux-amd64
-      - agent-Linux-arm64
-      - agent-Linux-riscv64
-      - agent-Linux-ppc64le
-      - agent-Linux-s390x
-      - agent-Windows-amd64
-      - agent-Windows-arm64
+      - openqa-agent
   release:
     cmds:
       # Note: Enable `-buildmode=pie` where possible.
@@ -34,3 +28,11 @@ tasks:
 
       - GOOS=windows GOARCH=amd64 go build -o agent-Windows-amd64 ./...
       - GOOS=windows GOARCH=arm64 go build -o agent-Windows-arm64 ./...
+    generates:
+      - agent-Linux-amd64
+      - agent-Linux-arm64
+      - agent-Linux-riscv64
+      - agent-Linux-ppc64le
+      - agent-Linux-s390x
+      - agent-Windows-amd64
+      - agent-Windows-arm64
