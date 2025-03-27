@@ -33,9 +33,6 @@ func (srv *service) Execute(args []string, r <-chan svc.ChangeRequest, status ch
 			}
 		}
 	}
-
-	status <- svc.Status{State: svc.StopPending}
-	return false, 1
 }
 
 func RunService() error {
