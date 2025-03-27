@@ -13,6 +13,8 @@ tasks:
     sources:
       - cmd/agent/*.go
     aliases: [build, agent]
+    depends:
+      - test
     generates:
       - agent-Linux-amd64
       - agent-Linux-arm64

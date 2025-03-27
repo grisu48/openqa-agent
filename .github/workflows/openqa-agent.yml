@@ -1,0 +1,22 @@
+---
+
+name: openqa-agent
+on: [push, pull_request]
+
+jobs:
+  openqa-agent:
+    name: openqa-agent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: Install requirements
+        run: go mod download
+      - name: Test openqa-agent
+        run: go test ./...
+      - name: Build openqa-agent
+        run: go build ./...
