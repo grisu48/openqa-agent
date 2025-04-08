@@ -199,11 +199,10 @@ func runSerialTerminalAgent(stream io.ReadWriter, conf Config) error {
 			}
 			// Add termination character to mark the end of the json object
 			if conf.Serial.Serialized {
-				if _, err := stream.Write([]byte{0}); err != nil {
+				if _, err := stream.Write([]byte{'\n'}); err != nil {
 					return err
 				}
 			}
 		}
 	}
-	return nil
 }
