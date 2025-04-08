@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -108,20 +108,44 @@ func RunSerialTerminalAgent(dest string, conf Config) error {
 	if err != nil {
 		return err
 	}
-	go func() {
+	go func(serial sr.Port) {
 		defer serial.Close()
 		if err := runSerialTerminalAgent(serial, conf); err != nil {
-			log.Fatalf("serial port error: %s", err)
+			log.Printf("serial port error: %s", err)
 		}
-	}()
+	}(serial)
 	return nil
+}
+
+// Read a line from the serial terminal.
+func readLine(reader io.Reader) (string, error) {
+	var buffer bytes.Buffer
+	buf := make([]byte, 1)
+	for {
+		n, err := reader.Read(buf)
+		if err != nil {
+			return buffer.String(), err
+		}
+		if n <= 0 {
+			continue
+		}
+		// Await termination symbols
+		if buf[0] == '\r' || buf[0] == '\n' || buf[0] == '\000' {
+			return buffer.String(), nil
+		}
+		buffer.WriteByte(buf[0])
+	}
 }
 
 // Reads from the given stream and will execute all commands.
 func runSerialTerminalAgent(stream io.ReadWriter, conf Config) error {
-	scanner := bufio.NewScanner(stream)
-	for scanner.Scan() {
-		command := strings.TrimSpace(scanner.Text())
+	for {
+		// Note: bufio.Scanner didn't work here, that's why we need to resort to a custom readLine function
+		line, err := readLine(stream)
+		if err != nil {
+			return err
+		}
+		command := strings.TrimSpace(line)
 		if command == "" || len(command) < 1 {
 			continue
 		}
@@ -160,7 +184,7 @@ func runSerialTerminalAgent(stream io.ReadWriter, conf Config) error {
 				if errors.Is(err, TimeoutError) {
 					reply.ReturnCode = 124
 				} else {
-					log.Fatalf("execution of '%s' failed: %s", command, err)
+					log.Printf("execution of '%s' failed: %s", command, err)
 					reply.ReturnCode = -1
 				}
 			}
@@ -180,9 +204,6 @@ func runSerialTerminalAgent(stream io.ReadWriter, conf Config) error {
 				}
 			}
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		return err
 	}
 	return nil
 }
