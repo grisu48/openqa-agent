@@ -31,7 +31,7 @@ type Discovery struct {
 
 type Serial struct {
 	SerialPort string `yaml:"port"`       // Serial Port where the agent should run on. Format: DEVICE[:BAUD]
-	Serialized bool   `yaml:"serialized"` // Terminate result object with a \0
+	Serialized bool   `yaml:"serialized"` // Terminate result object with a \n
 }
 
 // Authentication token object

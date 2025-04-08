@@ -202,7 +202,7 @@ func TestSerialization(t *testing.T) {
 	for range 10 {
 		terminal.in.Write([]byte("true\000"))
 		runSerialTerminalAgent(&terminal, conf)
-		buf, err := terminal.out.ReadBytes(0)
+		buf, err := terminal.out.ReadBytes('\n')
 		assert.NoError(t, err, "reading until termination symbol should succeed")
 		assert.Greater(t, len(buf), 1, "reply buffer should be larger than 1 character")
 		buf = buf[:len(buf)-1] // Remove termination character
