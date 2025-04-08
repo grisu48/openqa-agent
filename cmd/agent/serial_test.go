@@ -200,7 +200,7 @@ func TestSerialization(t *testing.T) {
 
 	// Run command 10 times to ensure the serialization can properly distinguish between runs
 	for range 10 {
-		terminal.in.Write([]byte("true"))
+		terminal.in.Write([]byte("true\000"))
 		runSerialTerminalAgent(&terminal, conf)
 		buf, err := terminal.out.ReadBytes(0)
 		assert.NoError(t, err, "reading until termination symbol should succeed")
