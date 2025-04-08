@@ -37,6 +37,7 @@ func (job *ExecJob) SetDefaults() {
 	job.Timeout = 30
 	job.Env = make([]string, 0)
 	job.ret = 0
+	job.runtime = 0
 	job.stdout = nil
 	job.stderr = nil
 }
@@ -103,6 +104,7 @@ func (job *ExecJob) exec() error {
 	// Run command
 	job.runtime = time.Now().UnixMilli()
 	if err := cmd.Start(); err != nil {
+		job.runtime = time.Now().UnixMilli() - job.runtime
 		return err
 	}
 
