@@ -9,5 +9,4 @@ const DEFAULT_CONFIG_PATH = "C:\\Program Files\\openqa-agent.yaml"
 func (cf *Config) SetSystemDefaults() {
 	cf.DefaultShell = "powershell"
 	cf.DefaultWorkDir = "C:\\"
-	cf.Serial.SerialPort = "COM1:9600,None,8,one"
 }

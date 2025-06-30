@@ -19,22 +19,28 @@ func (srv *service) Execute(args []string, r <-chan svc.ChangeRequest, status ch
 	status <- svc.Status{State: svc.StartPending}
 	status <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
-	for {
-		select {
-		case c := <-r:
-			switch c.Cmd {
-			case svc.Interrogate:
-				status <- c.CurrentStatus
-			case svc.Stop, svc.Shutdown:
-				log.Print("Service shutdown")
-				os.Exit(1)
-			default:
-				log.Printf("Unsupported service control request #%d", c)
-			}
+	for c := range r {
+		switch c.Cmd {
+		case svc.Interrogate:
+			status <- c.CurrentStatus
+		case svc.Stop, svc.Shutdown:
+			log.Print("Service shutdown")
+			os.Exit(1)
+		default:
+			log.Printf("Unsupported service control request #%d", c)
 		}
 	}
+
+	status <- svc.Status{State: svc.StopPending}
+	status <- svc.Status{State: svc.Stopped}
+	return false, 0
 }
 
 func RunService() error {
-	return svc.Run("openqa-agent", &service{})
+	if isService, err := svc.IsWindowsService(); err != nil {
+		return err
+	} else if isService {
+		return svc.Run("openqa-agent", &service{})
+	}
+	return nil
 }
